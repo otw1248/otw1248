@@ -1,0 +1,83 @@
+main:
+  push:
+    services: 
+      stages:
+        - name: Update issue
+          type: git:issue-update
+          options:
+            state: close
+            label:
+              add: Resolved      
+        - name: sync to github
+          image: tencentcom/git-sync
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/github.yml
+          timeout: 1h
+          settings:
+            target_url: "https://github.com/otw1248/otw1248.git"
+            auth_type: "https" # 或 "https"
+            #ssh_key: "${SSH_KEY}" # 如果使用 SSH
+            username: "${GITHUB_USERNAME}" # 如果使用 HTTPS
+            password: "${GITHUB_PASSWORD}" # 如果使用 HTTPS
+            branch: "main" # 可选，指定要推送的分支
+            force: true # 可选，是否强制推送
+            push_tags: true # 可选，是否推送标签
+            git_user: "${GITHUB_USERNAME}" # 可选，设置 git user.name
+            git_email: "${GITHUB_EMAIL_ADDR}" # 可选，设置 git user.email
+            #git_host: "git.example.com" # 可选，如果使用自定义 Git 服务器
+        - name: sync to codeup
+          image: tencentcom/git-sync
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/codeup.yml
+          timeout: 1h
+          settings:
+            target_url: "https://codeup.aliyun.com/618c93f8041d450d2c254871/async/cnb/awesomerepo.git"
+            auth_type: "https" # 或 "https"
+            #ssh_key: "${SSH_KEY}" # 如果使用 SSH
+            username: "${CODEUP_USERNAME}" # 如果使用 HTTPS
+            password: "${CODEUP_PASSWORD}" # 如果使用 HTTPS
+            branch: "main" # 可选，指定要推送的分支
+            force: true # 可选，是否强制推送
+            push_tags: true # 可选，是否推送标签
+            git_user: "${CODEUP_USERNAME}" # 可选，设置 git user.name
+            git_email: "${CODEUP_EMAIL_ADDR}" # 可选，设置 git user.email
+            #git_host: "git.example.com" # 可选，如果使用自定义 Git 服务器
+        - name: sync to gitlab
+          image: tencentcom/git-sync
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/gitlab.yml
+          timeout: 1h
+          settings:
+            target_url: "https://gitlab.com/otw1248/awesomerepo.git"
+            auth_type: "https" # 或 "https"
+            #ssh_key: "${SSH_KEY}" # 如果使用 SSH
+            username: "${GITLAB_USERNAME}" # 如果使用 HTTPS
+            password: "${GITLAB_PASSWORD}" # 如果使用 HTTPS
+            branch: "main" # 可选，指定要推送的分支
+            force: true # 可选，是否强制推送
+            push_tags: true # 可选，是否推送标签
+            git_user: "${GITLAB_USERNAME}" # 可选，设置 git user.name
+            git_email: "${GITLAB_EMAIL_ADDR}" # 可选，设置 git user.email
+            #git_host: "git.example.com" # 可选，如果使用自定义 Git 服务器
+        - name: send msg to feishu
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/feishu.yml
+          image: tencentcom/feishu-message
+          settings:
+            robot: $msgFromCnbForMsgs
+            content: $sendingMsgToFeishuKeys - ${CNB_REPO_SLUG_LOWERCASE} succeed to sync repo from cnb to other platforms(github,codeup,gitlab)!
+        - name: send msg to wecome
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/wecom.yml
+          image: tencentcom/wecom-message
+          settings:
+            robot: $wecom_cnb_robot_msg
+            content: $wecom_cnb_robot_msgKeys - ${CNB_REPO_SLUG_LOWERCASE} succeed to sync repo from cnb to other platforms(github,codeup,gitlab)!              
+      failStages:
+        - name: send msg to feishu
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/feishu.yml
+          image: tencentcom/feishu-message
+          settings:
+            robot: $msgFromCnbForMsgs
+            content: $sendingMsgToFeishuKeys - ${CNB_REPO_SLUG_LOWERCASE} failed to sync repo from cnb to other platforms(github,codeup,gitlab)!!!
+        - name: send msg to wecome
+          imports: https://cnb.cool/otw1248/secret/-/blob/main/wecom.yml
+          image: tencentcom/wecom-message
+          settings:
+            robot: $wecom_cnb_robot_msg
+            content: $wecom_cnb_robot_msgKeys - ${CNB_REPO_SLUG_LOWERCASE} failed to sync repo from cnb to other platforms(github,codeup,gitlab)!!!             
